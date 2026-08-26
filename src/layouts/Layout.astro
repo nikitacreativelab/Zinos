@@ -1,0 +1,26 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "zino's – Deutschlands erste Spritzbar",
+  description = "zino's – italienisches Aperitivo-Gefühl in Frankfurt, Köln, Heidelberg und Darmstadt. Aperitivo, Rosati und Limoncello, auch für zuhause.",
+} = Astro.props;
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href={`${import.meta.env.BASE_URL}favicon.png`} />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

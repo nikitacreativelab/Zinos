@@ -1,0 +1,224 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL;
+
+const products = [
+  {
+    key: 'aperitivo',
+    name: 'Aperitivo',
+    tag: 'Der Klassiker',
+    desc: "Bittersüß mit Orangenschale, Enzian und einem Hauch Vanille – der Signature-Spritz von zino's, seit dem ersten Tag unser Herzstück.",
+    price: '14,99 €',
+    vol: '70 cl · 15% Vol.',
+    accent: '#FF5917',
+    img: `${base}images/aperitivo.png`,
+    shopUrl: 'https://www.zinos.de/products/liquore-zinos-aperitivo',
+    soldOut: false,
+  },
+  {
+    key: 'rosati',
+    name: 'Rosati',
+    tag: 'Fruchtig & floral',
+    desc: 'Zarter Rosé-Charakter mit Blüten- und Beerennoten – der sommerliche Allrounder für laue Abende auf der Terrasse.',
+    price: '14,99 €',
+    vol: '70 cl · 15% Vol.',
+    accent: '#F26D8A',
+    img: `${base}images/rosati.png`,
+    shopUrl: 'https://www.zinos.de/products/liquore-zinos-rosati',
+    soldOut: false,
+  },
+  {
+    key: 'limoncello',
+    name: 'Limoncello',
+    tag: 'Sizilianische Zitrone',
+    desc: 'Intensiv-fruchtig mit sonnengereiften Zitronen – pur eisgekühlt, als Digestif oder im Spritz.',
+    price: '14,99 €',
+    vol: '70 cl · 32% Vol.',
+    accent: '#E8CF2B',
+    img: `${base}images/limoncello.png`,
+    shopUrl: 'https://www.zinos.de/products/liquore-zinos-limoncello',
+    soldOut: false,
+  },
+  {
+    key: 'af',
+    name: 'Aperitivo 0,0%',
+    tag: 'Alkoholfrei',
+    desc: 'Der volle zino\'s-Geschmack – ganz ohne Alkohol, für jeden Moment und jeden Gast am Tisch.',
+    price: '14,99 €',
+    vol: '70 cl · 0,0% Vol.',
+    accent: '#FFB37A',
+    img: `${base}images/aperitivo-af.png`,
+    shopUrl: 'https://www.zinos.de/products/zinos-aperitivo-0-0',
+    soldOut: false,
+  },
+];
+
+const locations = [
+  { city: 'Frankfurt', hours: 'Mo–Do 16–22 Uhr\nFr 16–24 Uhr\nSa 14–24 Uhr\nSo 14–21 Uhr', mail: 'frankfurt@zinos.de' },
+  { city: 'Köln', hours: 'Mo–Do 16–23 Uhr\nFr 16–24 Uhr\nSa 14–24 Uhr\nSo geschlossen', mail: 'koeln@zinos.de' },
+  { city: 'Heidelberg', hours: 'Mo geschlossen\nDi–Do 17–23 Uhr\nFr 17–24 Uhr\nSa 15–24 Uhr', mail: 'heidelberg@zinos.de' },
+  { city: 'Darmstadt', hours: 'Mo geschlossen\nDi–Do 16–23 Uhr\nFr 16–24 Uhr\nSa 14–24 Uhr', mail: 'darmstadt@zinos.de' },
+];
+---
+<Layout>
+  <nav class="nav">
+    <a href="#top" class="logo">zino's</a>
+    <div class="links">
+      <a href="#produkte">Getränke</a>
+      <a href="#standorte">Standorte</a>
+      <a href="#ueber-uns">Über uns</a>
+    </div>
+    <a href="#shop" class="btn btn-primary" style="padding:10px 24px; font-size:14px;">Shop öffnen</a>
+  </nav>
+
+  <section class="hero" id="top">
+    <canvas id="hero-canvas" aria-hidden="true"></canvas>
+    <div class="hero-text reveal">
+      <p class="eyebrow">Deutschlands erste Spritzbar</p>
+      <h1 class="headline">Aperitivo-Momente, italienisch gebraut.</h1>
+      <p class="body-text">Von Frankfurt bis Heidelberg: zino's bringt echtes italienisches Spritz-Gefühl in die Bar – und jetzt auch zu dir nach Hause.</p>
+      <div class="hero-ctas">
+        <a href="#shop" class="btn btn-primary">Jetzt shoppen</a>
+        <a href="#standorte" class="btn btn-outline">Standorte finden</a>
+      </div>
+    </div>
+    <div class="hero-visual reveal">
+      <div class="backdrop"></div>
+      <img src={`${base}images/aperitivo.png`} alt="zino's Aperitivo Flasche" />
+    </div>
+  </section>
+
+  <section class="journey" id="produkte">
+    <div class="section-header reveal">
+      <p class="eyebrow">Unsere Spritz-Familie</p>
+      <h2 class="headline">Wähle deinen Moment</h2>
+    </div>
+
+    <div class="jump-tabs">
+      {products.map((p) => (
+        <button class="pill" data-target={p.key} data-accent={p.accent} type="button">
+          <span class="dot" style={`background:${p.accent}`}></span>
+          <span>{p.name}</span>
+        </button>
+      ))}
+    </div>
+
+    <div class="panels">
+      {products.map((p, i) => (
+        <div class={`panel ${i % 2 === 1 ? 'reverse' : ''}`} id={p.key}>
+          <div class="panel-stage reveal">
+            <canvas data-bottle-canvas data-src={p.img}></canvas>
+          </div>
+          <div class="panel-info reveal">
+            <p class="tag" style={`color:${p.accent}`}>{p.tag}</p>
+            <h3 class="headline">{p.name}</h3>
+            <p class="body-text">{p.desc}</p>
+            <div class="panel-meta">
+              <span class="price">{p.price}</span>
+              <span class="volume">{p.vol}</span>
+              {p.soldOut && <span class="sold-out-badge">Ausverkauft</span>}
+            </div>
+            <a
+              href={p.shopUrl}
+              target="_blank"
+              rel="noopener"
+              class={`btn btn-primary ${p.soldOut ? 'is-disabled' : ''}`}
+              style={`background:${p.accent}; box-shadow:none;`}
+            >
+              In den Warenkorb
+            </a>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="locations" id="standorte">
+    <div class="section-header reveal">
+      <p class="eyebrow">Unsere Bars</p>
+      <h2 class="headline">Vier Städte, ein Aperitivo-Gefühl</h2>
+    </div>
+    <div class="location-cards">
+      {locations.map((loc) => (
+        <div class="location-card reveal">
+          <h3>{loc.city}</h3>
+          <p class="hours">{loc.hours}</p>
+          <a class="btn btn-outline" href={`https://www.google.com/maps/search/zino's+${loc.city}`} target="_blank" rel="noopener">Route planen</a>
+          <p class="mail">{loc.mail}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="shop-teaser">
+    <p class="eyebrow reveal">zino's für zuhause</p>
+    <h2 class="headline reveal">Die ganze Bar in deiner Küche.</h2>
+    <p class="body-text reveal">Aperitivo, Rosati und Limoncello – jetzt online bestellen und italienisches Spritz-Feeling nach Hause holen.</p>
+    <div class="stats-row reveal">
+      <div class="stat"><div class="num">4</div><div class="lbl">Standorte</div></div>
+      <div class="stat"><div class="num">100%</div><div class="lbl">natürliche Zutaten</div></div>
+      <div class="stat"><div class="num">2023</div><div class="lbl">gegründet</div></div>
+    </div>
+    <a href="#shop" class="btn btn-white reveal">Zum Shop</a>
+  </section>
+
+  <section class="shop-grid-section" id="shop">
+    <div class="section-header reveal">
+      <p class="eyebrow">Zino's Shop</p>
+      <h2 class="headline">Für zuhause bestellen</h2>
+    </div>
+    <div class="shop-grid">
+      {products.map((p) => (
+        <div class="shop-item reveal">
+          <img src={p.img} alt={`zino's ${p.name}`} />
+          <h4>{p.name}</h4>
+          <p class="price">{p.price}</p>
+          {p.soldOut && <p class="sold-out-badge">Ausverkauft</p>}
+          <a href={p.shopUrl} target="_blank" rel="noopener" class={`btn btn-primary ${p.soldOut ? 'is-disabled' : ''}`} style={`background:${p.accent}; box-shadow:none;`}>
+            In den Warenkorb
+          </a>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="about" id="ueber-uns">
+    <div class="about-text reveal">
+      <p class="eyebrow">Unsere Geschichte</p>
+      <h2 class="headline">Von zwei Freunden zu Deutschlands erster Spritzbar.</h2>
+      <p class="body-text">2023 gegründet von Simon und Zino – zwei Freunden mit einer Leidenschaft für Genuss und Gastfreundschaft. Nach 18 Monaten Produktentwicklung entstand 2024 die eigene Getränkelinie: Aperitivo, Rosati und Limoncello, gebraut mit natürlichen Zutaten und echtem italienischem Charakter.</p>
+    </div>
+    <div class="about-image reveal">
+      <img src={`${base}images/founders.jpg`} alt="Simon und Zino hinter der Theke" />
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <a href="#top" class="logo">zino's</a>
+      <div class="footer-links">
+        <div class="col">
+          <a href="#produkte">Getränke</a>
+          <a href="#standorte">Standorte</a>
+          <a href="#ueber-uns">Über uns</a>
+          <a href="#shop">Shop</a>
+        </div>
+        <div class="col">
+          <a href="https://www.instagram.com/zinos_spritz" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.tiktok.com/@zinos_spritz" target="_blank" rel="noopener">TikTok</a>
+          <a href="mailto:hallo@zinos.de">Kontakt</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-bottom">
+      <span>© 2026 zino's · Deutschlands erste Spritzbar</span>
+      <span>Frankfurt · Köln · Heidelberg · Darmstadt</span>
+    </div>
+  </footer>
+
+  <script>
+    import '../scripts/main.js';
+  </script>
+</Layout>
