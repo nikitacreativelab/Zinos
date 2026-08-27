@@ -17,6 +17,12 @@
 
 html { scroll-behavior: smooth; }
 
+html.is-loading,
+html.is-loading body {
+  overflow: hidden;
+  height: 100%;
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -106,10 +112,55 @@ img { max-width: 100%; display: block; }
 
 section { position: relative; }
 
+/* ---------- Preloader + curtain intro ---------- */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+.preloader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.preloader-logo {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 32px;
+  color: var(--accent-orange);
+}
+.preloader-bar {
+  width: 180px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(43, 27, 18, 0.12);
+  overflow: hidden;
+}
+.preloader-fill {
+  width: 100%;
+  height: 100%;
+  background: var(--accent-orange);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  background: var(--accent-orange);
+}
+
 /* ---------- Nav ---------- */
 .nav {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
   display: flex;
   align-items: center;
@@ -148,12 +199,19 @@ section { position: relative; }
   align-items: center;
   gap: 60px;
   padding: 90px 64px;
-  min-height: 640px;
+  min-height: 100vh;
+  overflow: hidden;
 }
 .hero-text { flex: 1; max-width: 620px; }
 .hero-text .headline { font-size: 54px; }
-.hero-text .body-text { margin-top: 20px; font-size: 17px; max-width: 520px; }
+.hero-text .body-text.hero-secondary { margin-top: 20px; font-size: 17px; max-width: 520px; }
 .hero-ctas { display: flex; gap: 16px; margin-top: 28px; flex-wrap: wrap; }
+
+/* Typewriter headline: each character is its own inline span, revealed via
+   GSAP opacity tweens. display:inline (not inline-block) so the browser's
+   normal Unicode line-breaking still wraps at spaces/hyphens correctly. */
+.typewriter .char { display: inline; opacity: 0; }
+
 .hero-visual {
   flex: 1;
   position: relative;
@@ -169,11 +227,12 @@ section { position: relative; }
   border-radius: 50%;
   background: radial-gradient(circle, #FFE3D1 0%, var(--bg) 75%);
 }
-.hero-visual img {
+.hero-visual .hero-bottle {
   position: relative;
   height: 480px;
   object-fit: contain;
   filter: drop-shadow(0 30px 40px rgba(43, 27, 18, 0.25));
+  will-change: transform;
 }
 #hero-canvas {
   position: absolute;
@@ -182,12 +241,33 @@ section { position: relative; }
   height: 100%;
   pointer-events: none;
 }
+.scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 36px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.scroll-hint .arrow { font-size: 16px; animation: bob 1.8s ease-in-out infinite; }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
 @media (max-width: 900px) {
-  .hero { flex-direction: column; padding: 60px 24px; text-align: center; }
+  .hero { flex-direction: column; padding: 60px 24px; text-align: center; min-height: auto; }
   .hero-text { max-width: 100%; }
   .hero-text .headline { font-size: 38px; }
   .hero-ctas { justify-content: center; }
   .hero-visual { width: 100%; }
+  .scroll-hint { display: none; }
 }
 
 /* ---------- Section header ---------- */
@@ -198,65 +278,62 @@ section { position: relative; }
 }
 .section-header .headline { font-size: 38px; }
 
-/* ---------- Produkt Reise ---------- */
-.journey { padding: 90px 0 0 0; }
-.jump-tabs {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-  padding: 0 24px 56px 24px;
-}
-.pill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 999px;
-  border: 1px solid #E7DDD1;
-  background: var(--bg-card);
-  font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-.pill .dot { width: 8px; height: 8px; border-radius: 50%; }
-.pill.active {
-  color: #fff;
-  border-color: transparent;
-}
-.pill.active .dot { background: #fff !important; }
+/* ---------- Product carousel (pinned scroll section) ---------- */
+.carousel-section { padding: 90px 0 60px 0; }
 
-.panel {
+.carousel-pin {
+  position: relative;
+  height: 620px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.carousel-stage {
+  position: relative;
+  width: 100%;
+  max-width: 1180px;
+  height: 520px;
+  margin: 0 auto;
+}
+.carousel-panel {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   gap: 72px;
-  padding: 72px 64px;
+  padding: 0 64px;
 }
-.panel:nth-child(odd) { background: var(--bg-card); }
-.panel.reverse { flex-direction: row-reverse; }
-
-.panel-stage {
+.carousel-visual {
   width: 380px;
   min-width: 280px;
   height: 480px;
   position: relative;
-  perspective: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.panel-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.carousel-glow {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 28%, transparent) 0%, transparent 72%);
+}
+.carousel-visual canvas { position: relative; width: 100%; height: 100%; }
 
-.panel-info { flex: 1; }
-.panel-info .tag {
+.carousel-info { flex: 1; }
+.carousel-info .tag {
   font-family: var(--font-body);
   font-weight: 700;
   font-size: 12px;
   letter-spacing: 1.2px;
   text-transform: uppercase;
 }
-.panel-info .headline { font-size: 44px; margin-top: 10px; }
-.panel-info .body-text { margin: 18px 0; font-size: 16px; max-width: 480px; }
+.carousel-info .headline { font-size: 44px; margin-top: 10px; }
+.carousel-info .body-text { margin: 18px 0; font-size: 16px; max-width: 480px; }
 .panel-meta { display: flex; align-items: center; gap: 24px; margin-bottom: 20px; }
 .panel-meta .price { font-family: var(--font-heading); font-weight: 700; font-size: 24px; }
 .panel-meta .volume { font-size: 13px; color: var(--text-secondary); }
@@ -272,11 +349,38 @@ section { position: relative; }
   margin-left: 12px;
 }
 
+.carousel-dots {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+}
+.carousel-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid #E7DDD1;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+.carousel-dots .dot.active { transform: scale(1.35); border-color: transparent; }
+
 @media (max-width: 900px) {
-  .panel, .panel.reverse { flex-direction: column; padding: 56px 24px; gap: 32px; text-align: center; }
-  .panel-info .body-text { margin-left: auto; margin-right: auto; }
+  .carousel-pin { height: auto; display: block; }
+  .carousel-stage { height: auto; }
+  .carousel-panel {
+    position: relative;
+    inset: auto;
+    flex-direction: column;
+    padding: 0 24px;
+    gap: 32px;
+    text-align: center;
+  }
+  .carousel-info .body-text { margin-left: auto; margin-right: auto; }
   .panel-meta { justify-content: center; }
-  .panel-stage { width: 100%; max-width: 320px; height: 400px; }
+  .carousel-visual { width: 100%; max-width: 320px; height: 400px; }
+  .carousel-dots { justify-content: center; margin-top: 0; }
 }
 
 /* ---------- Standorte ---------- */
@@ -338,20 +442,23 @@ section { position: relative; }
   .shop-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ---------- About ---------- */
+/* ---------- About / Heritage ---------- */
 .about {
   display: flex;
   align-items: center;
   gap: 64px;
-  padding: 90px 64px;
+  padding: 100px 64px;
+  background: var(--text-primary);
+  color: #F0E6DC;
 }
 .about-text { flex: 1; }
-.about-text .headline { font-size: 34px; }
-.about-text .body-text { margin-top: 18px; max-width: 480px; }
+.about-text .eyebrow { color: var(--accent-orange); }
+.about-text .headline { font-size: 34px; color: #fff; }
+.about-text .body-text { margin-top: 18px; max-width: 480px; color: #D9C9BC; }
 .about-image { flex: 1; max-width: 460px; }
 .about-image img { border-radius: 20px; width: 100%; height: auto; }
 @media (max-width: 900px) {
-  .about { flex-direction: column; padding: 56px 24px; text-align: center; }
+  .about { flex-direction: column; padding: 64px 24px; text-align: center; }
   .about-text .body-text { margin-left: auto; margin-right: auto; }
 }
 

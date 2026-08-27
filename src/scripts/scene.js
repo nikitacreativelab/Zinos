@@ -57,10 +57,14 @@ export function initHeroScene(canvas) {
 
 /**
  * A single product photo rendered as a textured plane in a real WebGL/Three.js
- * scene, given a gentle continuous turntable rotation. Built from front-facing
- * product photos only (no volumetric 3D model available), so the "3D rotation"
- * is a lit, perspective-correct textured card rather than a full mesh —
- * the deliberate fallback agreed with the client for this iteration.
+ * scene, given a gentle turntable rotation. Built from front-facing product
+ * photos only (no volumetric 3D model available), so the "3D rotation" is a
+ * lit, perspective-correct textured card rather than a full mesh — the
+ * deliberate fallback agreed with the client for this iteration.
+ *
+ * Exposes { start, stop } instead of auto-playing on intersection, so a
+ * parent controller (the scroll-driven product carousel) can decide exactly
+ * which single scene should be animating at any moment.
  */
 export function initBottleScene(canvas, imageUrl) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
@@ -77,6 +81,19 @@ export function initBottleScene(canvas, imageUrl) {
 
   const loader = new THREE.TextureLoader();
   let mesh;
+
+  function resize() {
+    const { clientWidth: w, clientHeight: h } = canvas;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.render(scene, camera);
+  }
+  const ro = new ResizeObserver(resize);
+  ro.observe(canvas);
+  resize();
+
   loader.load(imageUrl, (texture) => {
     texture.colorSpace = THREE.SRGBColorSpace;
     const imgW = texture.image.width;
@@ -94,18 +111,9 @@ export function initBottleScene(canvas, imageUrl) {
     });
     mesh = new THREE.Mesh(geo, mat);
     scene.add(mesh);
+    resize();
+    renderer.render(scene, camera);
   });
-
-  function resize() {
-    const { clientWidth: w, clientHeight: h } = canvas;
-    if (!w || !h) return;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  }
-  const ro = new ResizeObserver(resize);
-  ro.observe(canvas);
-  resize();
 
   let running = false;
   let raf;
@@ -122,23 +130,23 @@ export function initBottleScene(canvas, imageUrl) {
     raf = requestAnimationFrame(animate);
   }
 
-  const io = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (entry.isIntersecting) {
-        if (!running) { running = true; clock.start(); animate(); }
-      } else {
-        running = false;
-        cancelAnimationFrame(raf);
-      }
-    }
-  }, { threshold: 0.15 });
-  io.observe(canvas);
+  function start() {
+    if (running) return;
+    running = true;
+    clock.start();
+    animate();
+  }
 
-  return () => {
+  function stop() {
     running = false;
     cancelAnimationFrame(raf);
-    io.disconnect();
+  }
+
+  function dispose() {
+    stop();
     ro.disconnect();
     renderer.dispose();
-  };
+  }
+
+  return { start, stop, dispose };
 }
